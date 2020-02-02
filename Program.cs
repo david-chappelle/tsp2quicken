@@ -19,20 +19,12 @@ namespace Tsp2Quicken
 
 				var doc = web.Load(url);
 
-				var rowNodes = doc.DocumentNode.SelectNodes("//table[@class='tspStandard']/tr");
+				var rowNodes = doc.DocumentNode.SelectNodes("//table[@class='tspStandard']/tr").ToArray();
+				var headers = rowNodes[0].SelectNodes("th").Select(n => n.InnerText.Trim()).ToArray();
 
-				var isTitleRow = true;
-				string[] headers = null;
-				foreach (var node in rowNodes)
-				{
-					if (isTitleRow)
-					{
-						headers = node.SelectNodes("th").Select(n => n.InnerText).ToArray();
-						isTitleRow = false;
-						continue;
-					}
-
-					var columns = node.SelectNodes("td").Select(n => n.InnerText.Trim().Replace("\n", "")).ToArray();
+				for (int iRow = 1; iRow < rowNodes.Length; iRow++)
+				{ 
+					var columns = rowNodes[iRow].SelectNodes("td").Select(n => n.InnerText.Trim().Replace("\n", "")).ToArray();
 					var date = DateTime.ParseExact(columns[0], "MMM dd, yyyy", CultureInfo.InvariantCulture);
 					var outputDate = date.ToString("MM/dd/yy");
 
