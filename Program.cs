@@ -14,22 +14,27 @@ namespace Tsp2Quicken
 
 			try
 			{
-				var url = "https://www.tsp.gov/InvestmentFunds/FundPerformance/index.html";
-				var web = new HtmlWeb();
-
-				var doc = web.Load(url);
+				var doc = new HtmlWeb().Load("https://www.tsp.gov/InvestmentFunds/FundPerformance/index.html");
 
 				var rowNodes = doc.DocumentNode.SelectNodes("//table[@class='tspStandard']/tr").ToArray();
+
+				// first row is headers
 				var headers = rowNodes[0].SelectNodes("th").Select(n => n.InnerText.Trim()).ToArray();
 
+				// subsequent rows are quotes by date
 				for (int iRow = 1; iRow < rowNodes.Length; iRow++)
 				{ 
-					var columns = rowNodes[iRow].SelectNodes("td").Select(n => n.InnerText.Trim().Replace("\n", "")).ToArray();
-					var date = DateTime.ParseExact(columns[0], "MMM dd, yyyy", CultureInfo.InvariantCulture);
+					// get the cell text
+					var data = rowNodes[iRow].SelectNodes("td").Select(n => n.InnerText.Trim().Replace("\n", "")).ToArray();
+
+					// Date is always in the form Feb 01, 2020
+					var date = DateTime.ParseExact(data[0], "MMM dd, yyyy", CultureInfo.InvariantCulture);
+
+					// Date in the csv file is in the form 02/01/20
 					var outputDate = date.ToString("MM/dd/yy");
 
-					for (int i = 1; i < columns.Length; i++)
-						csvWriter.WriteLine($"TSP {headers[i]},{outputDate},{columns[i]}");
+					for (int i = 1; i < data.Length; i++)
+						csvWriter.WriteLine($"TSP {headers[i]},{outputDate},{data[i]}");
 				}
 			}
 			catch (Exception ex)
